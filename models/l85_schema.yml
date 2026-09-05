@@ -1,0 +1,37 @@
+version: 2
+
+models:
+  - name: l85_victim_orders
+    description: "CLEAVE L85 canary — synthetic rows materialized from the victim tenant's warehouse."
+
+semantic_models:
+  - name: l85_victim_orders_sm
+    description: "CLEAVE L85 canary semantic model"
+    model: ref('l85_victim_orders')
+    defaults:
+      agg_time_dimension: order_date
+    entities:
+      - name: order_id
+        type: primary
+        expr: order_id
+    dimensions:
+      - name: order_date
+        type: time
+        type_params:
+          time_granularity: day
+      - name: region
+        type: categorical
+        expr: region
+    measures:
+      - name: canary_amount
+        agg: sum
+        expr: amount
+        agg_time_dimension: order_date
+
+metrics:
+  - name: l85_canary_revenue
+    label: "CLEAVE L85 canary revenue"
+    description: "Sum of the synthetic canary amounts held in the victim tenant's private warehouse."
+    type: simple
+    type_params:
+      measure: canary_amount
